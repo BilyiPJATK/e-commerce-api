@@ -12,20 +12,33 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Override
     public UserResponseDto createUser(UserRequestDto requestDto) {
+        Optional<User> existingUser = userRepository.findByEmail(requestDto.getEmail());
+        if (existingUser.isPresent()) {
+            throw new IllegalArgumentException("A user with this email already exists");
+        }
+
         User user = userMapper.toEntity(requestDto);
+
+        user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
+
         User savedUser = userRepository.save(user);
         return userMapper.toResponseDto(savedUser);
     }

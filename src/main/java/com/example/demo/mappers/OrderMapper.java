@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 public interface OrderMapper {
 
     @Mapping(source = "user.id", target = "userId")
-    @Mapping(source = "user.username", target = "username")
+    @Mapping(source = "user.displayName", target = "displayName")
     @Mapping(target = "totalAmount", ignore = true)
     OrderResponseDto toResponseDto(Order entity);
 
