@@ -1,6 +1,6 @@
 package com.example.demo.dtos.response;
 
-import com.example.demo.models.OrderStatus;
+import com.example.demo.enums.OrderStatus;
 import lombok.Data;
 
 import java.math.BigDecimal;
