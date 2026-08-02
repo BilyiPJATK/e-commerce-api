@@ -1,10 +1,9 @@
 package com.example.demo.mappers;
 
-import com.example.demo.dtos.request.UserRequestDto;
-import com.example.demo.dtos.response.UserResponseDto;
-import com.example.demo.models.User;
+import com.example.demo.dtos.users.request.UserRequestDto;
+import com.example.demo.dtos.users.response.UserResponseDto;
+import com.example.demo.models.users.User;
 import org.mapstruct.Mapper;
-import org.springframework.stereotype.Component;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {

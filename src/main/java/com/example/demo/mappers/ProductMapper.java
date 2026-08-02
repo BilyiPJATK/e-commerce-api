@@ -1,8 +1,8 @@
 package com.example.demo.mappers;
 
-import com.example.demo.dtos.request.ProductRequestDto;
-import com.example.demo.dtos.response.ProductResponseDto;
-import com.example.demo.models.Product;
+import com.example.demo.dtos.retail.request.ProductRequestDto;
+import com.example.demo.dtos.retail.response.ProductResponseDto;
+import com.example.demo.models.retail.Product;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

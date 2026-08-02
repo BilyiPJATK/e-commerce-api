@@ -1,10 +1,9 @@
 package com.example.demo.mappers;
 
-import com.example.demo.dtos.request.OrderRequestDto;
-import com.example.demo.dtos.response.OrderItemResponseDto;
-import com.example.demo.dtos.response.OrderResponseDto;
-import com.example.demo.models.Order;
-import com.example.demo.models.OrderItem;
+import com.example.demo.dtos.retail.response.OrderItemResponseDto;
+import com.example.demo.dtos.retail.response.OrderResponseDto;
+import com.example.demo.models.retail.Order;
+import com.example.demo.models.retail.OrderItem;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,17 +11,12 @@ import org.mapstruct.MappingTarget;
 
 import java.math.BigDecimal;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {UserMapper.class, ProductMapper.class})
 public interface OrderMapper {
 
-    @Mapping(source = "user.id", target = "userId")
-    @Mapping(source = "user.displayName", target = "displayName")
     @Mapping(target = "totalAmount", ignore = true)
     OrderResponseDto toResponseDto(Order entity);
 
-    @Mapping(source = "product.id", target = "productId")
-    @Mapping(source = "product.name", target = "productName")
-    @Mapping(source = "price", target = "priceAtPurchase")
     OrderItemResponseDto toOrderItemResponseDto(OrderItem item);
 
     @AfterMapping

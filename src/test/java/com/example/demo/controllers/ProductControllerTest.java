@@ -1,13 +1,17 @@
 package com.example.demo.controllers;
 
-import com.example.demo.dtos.request.ProductRequestDto;
-import com.example.demo.dtos.response.ProductResponseDto;
-import com.example.demo.services.ProductService;
+import com.example.demo.controllers.retail.ProductController;
+import com.example.demo.dtos.retail.request.ProductRequestDto;
+import com.example.demo.dtos.retail.response.ProductResponseDto;
+import com.example.demo.security.JwtService;
+import com.example.demo.services.retail.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -20,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProductController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class ProductControllerTest {
 
     @Autowired
@@ -30,6 +35,12 @@ public class ProductControllerTest {
 
     @MockitoBean
     private ProductService productService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
 
     @Test
     void addProduct_ValidRequest_Returns201Created() throws Exception {
@@ -45,8 +56,8 @@ public class ProductControllerTest {
         when(productService.addProduct(any(ProductRequestDto.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/products")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Mechanical Keyboard"));
@@ -59,8 +70,8 @@ public class ProductControllerTest {
         request.setPrice(BigDecimal.valueOf(-50.00));
 
         mockMvc.perform(post("/api/products")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.price").exists());
     }

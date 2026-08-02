@@ -1,12 +1,12 @@
 package com.example.demo.services;
 
-import com.example.demo.dtos.request.UserRequestDto;
-import com.example.demo.dtos.response.UserResponseDto;
+import com.example.demo.dtos.users.request.UserRequestDto;
+import com.example.demo.dtos.users.response.UserResponseDto;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.mappers.UserMapper;
-import com.example.demo.models.User;
-import com.example.demo.repositories.UserRepository;
-import com.example.demo.services.impl.UserServiceImpl;
+import com.example.demo.models.users.User;
+import com.example.demo.repositories.users.UserRepository;
+import com.example.demo.services.users.impl.UserServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,9 @@ class UserServiceImplTest {
 
     @InjectMocks
     private UserServiceImpl userService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Test
     void getUserById_Success_ReturnsUserDto() {
@@ -70,6 +74,7 @@ class UserServiceImplTest {
     void addUser_Success_ReturnsSavedUserDto() {
         UserRequestDto requestDto = new UserRequestDto();
         requestDto.setEmail("new@example.com");
+        requestDto.setPassword("plainTextPassword");
 
         User mappedEntity = new User();
         mappedEntity.setEmail("new@example.com");
@@ -83,6 +88,7 @@ class UserServiceImplTest {
         expectedResponse.setEmail("new@example.com");
 
         when(userMapper.toEntity(requestDto)).thenReturn(mappedEntity);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(mappedEntity)).thenReturn(savedEntity);
         when(userMapper.toResponseDto(savedEntity)).thenReturn(expectedResponse);
 
@@ -91,6 +97,7 @@ class UserServiceImplTest {
         assertNotNull(result);
         assertEquals(2L, result.getId());
         verify(userRepository, times(1)).save(mappedEntity);
+        verify(passwordEncoder, times(1)).encode("plainTextPassword");
     }
 
     @Test

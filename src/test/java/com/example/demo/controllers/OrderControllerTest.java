@@ -1,13 +1,17 @@
 package com.example.demo.controllers;
 
-import com.example.demo.dtos.request.OrderRequestDto;
-import com.example.demo.dtos.response.OrderResponseDto;
-import com.example.demo.services.OrderService;
+import com.example.demo.controllers.retail.OrderController;
+import com.example.demo.dtos.retail.request.OrderRequestDto;
+import com.example.demo.dtos.retail.response.OrderResponseDto;
+import com.example.demo.security.JwtService;
+import com.example.demo.services.retail.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -21,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class OrderControllerTest {
 
     @Autowired
@@ -31,6 +36,12 @@ public class OrderControllerTest {
 
     @MockitoBean
     private OrderService orderService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
 
     @Test
     void createOrder_ValidRequest_Returns201Created() throws Exception {
@@ -45,8 +56,8 @@ public class OrderControllerTest {
         when(orderService.createOrder(any(OrderRequestDto.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(5))
                 .andExpect(jsonPath("$.totalAmount").value(200.50));

@@ -1,16 +1,16 @@
 package com.example.demo.services;
 
-import com.example.demo.dtos.request.OrderRequestDto;
-import com.example.demo.dtos.response.OrderResponseDto;
+import com.example.demo.dtos.retail.request.OrderRequestDto;
+import com.example.demo.dtos.retail.response.OrderResponseDto;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.mappers.OrderMapper;
-import com.example.demo.models.Order;
-import com.example.demo.models.Product;
-import com.example.demo.models.User;
-import com.example.demo.repositories.OrderRepository;
-import com.example.demo.repositories.ProductRepository;
-import com.example.demo.repositories.UserRepository;
-import com.example.demo.services.impl.OrderServiceImpl;
+import com.example.demo.models.retail.Order;
+import com.example.demo.models.retail.Product;
+import com.example.demo.models.users.User;
+import com.example.demo.repositories.retail.OrderRepository;
+import com.example.demo.repositories.retail.ProductRepository;
+import com.example.demo.repositories.users.UserRepository;
+import com.example.demo.services.retail.impl.OrderServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -47,14 +47,25 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(InsufficientStockException.class)
-    public ResponseEntity<ErrorResponse> handleInsufficientStockException(InsufficientStockException ex) {
+    @ExceptionHandler({InsufficientStockException.class, EquipmentUnavailableException.class})
+    public ResponseEntity<ErrorResponse> handleConflictExceptions(RuntimeException ex) {
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
-                HttpStatus.CONFLICT.value(), // 409
-                "Stock Conflict",
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
                 ex.getMessage()
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidRentalActionException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidActionExceptions(InvalidRentalActionException ex) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 }
