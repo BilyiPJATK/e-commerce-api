@@ -1,6 +1,7 @@
 package com.example.demo.controllers.retail;
 
 import com.example.demo.dtos.retail.request.ProductRequestDto;
+import com.example.demo.dtos.retail.request.ProductStockUpdateDto;
 import com.example.demo.dtos.retail.response.ProductResponseDto;
 import com.example.demo.services.retail.ProductService;
 import jakarta.validation.Valid;
@@ -51,5 +52,13 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/stock")
+    public ResponseEntity<ProductResponseDto> updateStock(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductStockUpdateDto requestDto) {
+        ProductResponseDto updatedProduct = productService.updateStock(id, requestDto);
+        return ResponseEntity.ok(updatedProduct);
     }
 }

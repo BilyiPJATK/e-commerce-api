@@ -1,9 +1,12 @@
 package com.example.demo.models.retail;
 
 import com.example.demo.enums.OrderStatus;
+import com.example.demo.models.BaseEntity;
 import com.example.demo.models.users.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,11 +14,13 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
+@SQLDelete(sql = "UPDATE orders SET is_deleted = true WHERE id=?")
+@SQLRestriction("is_deleted = false")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Order {
+public class Order extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

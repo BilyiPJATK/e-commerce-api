@@ -3,22 +3,27 @@ package com.example.demo.models.rental;
 
 import com.example.demo.enums.EquipmentCondition;
 import com.example.demo.enums.EquipmentType;
+import com.example.demo.models.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Entity
 @Table(name = "equipment")
+@SQLDelete(sql = "UPDATE equipment SET is_deleted = true WHERE id=?")
+@SQLRestriction("is_deleted = false")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Equipment {
+public class Equipment extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

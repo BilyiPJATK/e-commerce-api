@@ -15,4 +15,6 @@ public interface RentalTransactionRepository extends JpaRepository<RentalTransac
 
     // Find rentals that haven't been returned yet
     List<RentalTransaction> findByActualReturnTimeIsNull();
+
+    boolean existsByEquipmentIdAndActualReturnTimeIsNull(Long equipmentId);
 }

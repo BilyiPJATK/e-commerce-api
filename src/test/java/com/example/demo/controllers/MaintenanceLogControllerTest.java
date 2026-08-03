@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -53,7 +54,7 @@ public class MaintenanceLogControllerTest {
         request.setEquipmentId(1L);
         request.setDateSent(LocalDate.now());
         request.setDescription("Resoled toes");
-        request.setCost(35.50);
+        request.setCost(BigDecimal.valueOf(35.50));
 
         EquipmentResponseDto equipment = new EquipmentResponseDto();
         equipment.setId(1L);
@@ -63,7 +64,7 @@ public class MaintenanceLogControllerTest {
         response.setEquipment(equipment);
         response.setDateSent(LocalDate.now());
         response.setDescription("Resoled toes");
-        response.setCost(35.50);
+        response.setCost(BigDecimal.valueOf(35.50));
 
         when(maintenanceLogService.createMaintenanceLog(any(MaintenanceLogRequestDto.class))).thenReturn(response);
 

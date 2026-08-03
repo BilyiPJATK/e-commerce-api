@@ -1,5 +1,6 @@
 package com.example.demo.controllers.rental;
 
+import com.example.demo.dtos.rental.request.MaintenanceCompleteRequestDto;
 import com.example.demo.dtos.rental.request.MaintenanceLogRequestDto;
 import com.example.demo.dtos.rental.response.MaintenanceLogResponseDto;
 import com.example.demo.services.rental.MaintenanceLogService;
@@ -49,5 +50,14 @@ public class MaintenanceLogController {
     public ResponseEntity<Void> deleteMaintenanceLog(@PathVariable Long id) {
         maintenanceLogService.deleteMaintenanceLog(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<MaintenanceLogResponseDto> completeMaintenance(
+            @PathVariable Long id,
+            @RequestBody MaintenanceCompleteRequestDto requestDto) {
+
+        MaintenanceLogResponseDto updatedLog = maintenanceLogService.completeMaintenance(id, requestDto);
+        return ResponseEntity.ok(updatedLog);
     }
 }

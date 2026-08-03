@@ -2,6 +2,8 @@ package com.example.demo.services;
 
 import com.example.demo.dtos.retail.request.OrderRequestDto;
 import com.example.demo.dtos.retail.response.OrderResponseDto;
+import com.example.demo.enums.OrderStatus;
+import com.example.demo.exceptions.InsufficientStockException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.mappers.OrderMapper;
 import com.example.demo.models.retail.Order;
@@ -18,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,6 +43,7 @@ public class OrderServiceImplTest {
     @InjectMocks
     private OrderServiceImpl orderService;
 
+
     @Test
     void createOrder_Success_ReturnsOrderDto() {
         OrderRequestDto requestDto = new OrderRequestDto();
@@ -52,6 +56,7 @@ public class OrderServiceImplTest {
         Product mockProduct = new Product();
         mockProduct.setId(100L);
         mockProduct.setStockQuantity(2);
+        mockProduct.setPrice(BigDecimal.valueOf(50.0));
 
         Order savedOrder = new Order();
         savedOrder.setId(5L);
@@ -81,9 +86,7 @@ public class OrderServiceImplTest {
 
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> {
-            orderService.createOrder(requestDto);
-        });
+        assertThrows(ResourceNotFoundException.class, () -> orderService.createOrder(requestDto));
 
         verify(orderRepository, never()).save(any());
         verify(productRepository, never()).findById(any());
@@ -101,9 +104,7 @@ public class OrderServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> {
-            orderService.createOrder(requestDto);
-        });
+        assertThrows(ResourceNotFoundException.class, () -> orderService.createOrder(requestDto));
 
         verify(orderRepository, never()).save(any());
     }
@@ -124,10 +125,96 @@ public class OrderServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
         when(productRepository.findById(100L)).thenReturn(Optional.of(mockProduct));
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            orderService.createOrder(requestDto);
-        });
+        assertThrows(InsufficientStockException.class, () -> orderService.createOrder(requestDto));
 
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    void getAllOrders_Success_ReturnsList() {
+        Order order = new Order();
+        OrderResponseDto dto = new OrderResponseDto();
+
+        when(orderRepository.findAll()).thenReturn(List.of(order));
+        when(orderMapper.toResponseDto(order)).thenReturn(dto);
+
+        List<OrderResponseDto> results = orderService.getAllOrders();
+
+        assertEquals(1, results.size());
+        verify(orderRepository, times(1)).findAll();
+    }
+
+    @Test
+    void getOrderById_Success_ReturnsOrder() {
+        Order order = new Order();
+        order.setId(1L);
+        OrderResponseDto dto = new OrderResponseDto();
+        dto.setId(1L);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderMapper.toResponseDto(order)).thenReturn(dto);
+
+        OrderResponseDto result = orderService.getOrderById(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+    }
+
+    @Test
+    void getOrderById_NotFound_ThrowsException() {
+        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> orderService.getOrderById(99L));
+    }
+
+    @Test
+    void getOrdersByUserId_Success_ReturnsList() {
+        Order order = new Order();
+        OrderResponseDto dto = new OrderResponseDto();
+
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(orderRepository.findByUserId(1L)).thenReturn(List.of(order));
+        when(orderMapper.toResponseDto(order)).thenReturn(dto);
+
+        List<OrderResponseDto> results = orderService.getOrdersByUserId(1L);
+
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    void getOrdersByUserId_UserNotFound_ThrowsException() {
+        when(userRepository.existsById(99L)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> orderService.getOrdersByUserId(99L));
+        verify(orderRepository, never()).findByUserId(any());
+    }
+
+    @Test
+    void updateOrderStatus_Success_ReturnsUpdatedOrder() {
+        Order order = new Order();
+        order.setId(1L);
+        order.setStatus(OrderStatus.PENDING);
+
+        OrderResponseDto dto = new OrderResponseDto();
+        dto.setId(1L);
+        dto.setStatus(OrderStatus.PAID);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.save(order)).thenReturn(order);
+        when(orderMapper.toResponseDto(order)).thenReturn(dto);
+
+        OrderResponseDto result = orderService.updateOrderStatus(1L, OrderStatus.PAID);
+
+        assertNotNull(result);
+        assertEquals(OrderStatus.PAID, result.getStatus());
+        verify(orderRepository, times(1)).save(order);
+    }
+
+    @Test
+    void updateOrderStatus_OrderNotFound_ThrowsException() {
+        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> orderService.updateOrderStatus(99L, OrderStatus.PAID));
         verify(orderRepository, never()).save(any());
     }
 }

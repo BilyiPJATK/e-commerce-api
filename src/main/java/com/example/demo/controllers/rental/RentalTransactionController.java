@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/rentals")
 @RequiredArgsConstructor
@@ -29,5 +31,19 @@ public class RentalTransactionController {
 
         RentalTransactionResponseDto transaction = rentalService.returnEquipment(transactionId);
         return ResponseEntity.ok(transaction);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<RentalTransactionResponseDto>> getAllRentals(
+            @RequestParam(required = false) String status) {
+
+        return ResponseEntity.ok(rentalService.getAllRentals(status));
+    }
+
+    @GetMapping("/member/{memberId}")
+    public ResponseEntity<List<RentalTransactionResponseDto>> getRentalsByMemberId(
+            @PathVariable Long memberId) {
+
+        return ResponseEntity.ok(rentalService.getRentalsByMemberId(memberId));
     }
 }

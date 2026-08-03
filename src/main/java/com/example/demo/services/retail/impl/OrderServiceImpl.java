@@ -2,6 +2,7 @@ package com.example.demo.services.retail.impl;
 
 import com.example.demo.dtos.retail.request.OrderRequestDto;
 import com.example.demo.dtos.retail.response.OrderResponseDto;
+import com.example.demo.enums.OrderStatus;
 import com.example.demo.exceptions.InsufficientStockException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.mappers.OrderMapper;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -57,6 +59,41 @@ public class OrderServiceImpl implements OrderService {
 
             order.getItems().add(orderItem);
         }
+        Order savedOrder = orderRepository.save(order);
+        return orderMapper.toResponseDto(savedOrder);
+    }
+
+    @Override
+    public List<OrderResponseDto> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(orderMapper::toResponseDto)
+                .toList();
+    }
+
+    @Override
+    public OrderResponseDto getOrderById(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+        return orderMapper.toResponseDto(order);
+    }
+
+    @Override
+    public List<OrderResponseDto> getOrdersByUserId(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with id: " + userId);
+        }
+        return orderRepository.findByUserId(userId).stream()
+                .map(orderMapper::toResponseDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public OrderResponseDto updateOrderStatus(Long id, OrderStatus newStatus) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+
+        order.setStatus(newStatus);
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toResponseDto(savedOrder);
     }

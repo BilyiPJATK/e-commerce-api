@@ -1,5 +1,6 @@
 package com.example.demo.services.rental;
 
+import com.example.demo.dtos.rental.request.MaintenanceCompleteRequestDto;
 import com.example.demo.dtos.rental.request.MaintenanceLogRequestDto;
 import com.example.demo.dtos.rental.response.MaintenanceLogResponseDto;
 
@@ -11,4 +12,6 @@ public interface MaintenanceLogService {
     List<MaintenanceLogResponseDto> getLogsByEquipmentId(Long equipmentId);
     List<MaintenanceLogResponseDto> getAllMaintenanceLogs();
     void deleteMaintenanceLog(Long id);
+
+    MaintenanceLogResponseDto completeMaintenance(Long id, MaintenanceCompleteRequestDto requestDto);
 }

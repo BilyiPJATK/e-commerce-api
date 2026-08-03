@@ -23,6 +23,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class RentalTransactionServiceImpl implements RentalTransactionService {
+
     private final RentalTransactionRepository rentalRepository;
     private final EquipmentRepository equipmentRepository;
     private final MemberRepository memberRepository;
@@ -37,9 +38,7 @@ public class RentalTransactionServiceImpl implements RentalTransactionService {
         Equipment equipment = equipmentRepository.findById(requestDto.getEquipmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Equipment not found with ID: " + requestDto.getEquipmentId()));
 
-        List<RentalTransaction> activeRentals = rentalRepository.findByActualReturnTimeIsNull();
-        boolean isAlreadyRented = activeRentals.stream()
-                .anyMatch(rental -> rental.getEquipment().getId().equals(requestDto.getEquipmentId()));
+        boolean isAlreadyRented = rentalRepository.existsByEquipmentIdAndActualReturnTimeIsNull(requestDto.getEquipmentId());
 
         if (isAlreadyRented) {
             throw new EquipmentUnavailableException("This equipment is currently rented out and unavailable.");
@@ -68,5 +67,31 @@ public class RentalTransactionServiceImpl implements RentalTransactionService {
         transaction.setActualReturnTime(LocalDateTime.now());
         RentalTransaction updatedTransaction = rentalRepository.save(transaction);
         return rentalTransactionMapper.toResponseDto(updatedTransaction);
+    }
+
+    @Override
+    public List<RentalTransactionResponseDto> getAllRentals(String status) {
+        List<RentalTransaction> rentals;
+
+        if ("ACTIVE".equalsIgnoreCase(status)) {
+            rentals = rentalRepository.findByActualReturnTimeIsNull();
+        } else {
+            rentals = rentalRepository.findAll();
+        }
+
+        return rentals.stream()
+                .map(rentalTransactionMapper::toResponseDto)
+                .toList();
+    }
+
+    @Override
+    public List<RentalTransactionResponseDto> getRentalsByMemberId(Long memberId) {
+        if (!memberRepository.existsById(memberId)) {
+            throw new ResourceNotFoundException("Member not found with ID: " + memberId);
+        }
+
+        return rentalRepository.findByMemberId(memberId).stream()
+                .map(rentalTransactionMapper::toResponseDto)
+                .toList();
     }
 }

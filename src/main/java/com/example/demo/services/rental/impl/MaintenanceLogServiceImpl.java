@@ -1,5 +1,6 @@
 package com.example.demo.services.rental.impl;
 
+import com.example.demo.dtos.rental.request.MaintenanceCompleteRequestDto;
 import com.example.demo.dtos.rental.request.MaintenanceLogRequestDto;
 import com.example.demo.dtos.rental.response.MaintenanceLogResponseDto;
 import com.example.demo.exceptions.ResourceNotFoundException;
@@ -69,5 +70,30 @@ public class MaintenanceLogServiceImpl implements MaintenanceLogService {
             throw new ResourceNotFoundException("Maintenance log not found with ID: " + id);
         }
         maintenanceLogRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public MaintenanceLogResponseDto completeMaintenance(Long id, MaintenanceCompleteRequestDto requestDto) {
+        MaintenanceLog log = maintenanceLogRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Maintenance log not found with ID: " + id));
+
+        if (log.getDateReturned() != null) {
+            throw new IllegalStateException("This maintenance log has already been completed.");
+        }
+
+        log.setDateReturned(java.time.LocalDate.now());
+        if (requestDto.getFinalCost() != null) {
+            log.setCost(requestDto.getFinalCost());
+        }
+
+        Equipment equipment = log.getEquipment();
+        if (equipment != null) {
+            equipment.setCondition(com.example.demo.enums.EquipmentCondition.GOOD);
+            equipmentRepository.save(equipment);
+        }
+
+        MaintenanceLog savedLog = maintenanceLogRepository.save(log);
+        return maintenanceLogMapper.toResponseDto(savedLog);
     }
 }

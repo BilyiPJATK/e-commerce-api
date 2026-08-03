@@ -2,6 +2,7 @@ package com.example.demo.services;
 
 
 import com.example.demo.dtos.retail.request.ProductRequestDto;
+import com.example.demo.dtos.retail.request.ProductStockUpdateDto;
 import com.example.demo.dtos.retail.response.ProductResponseDto;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.mappers.ProductMapper;
@@ -148,5 +149,68 @@ public class ProductServiceImplTest {
         assertTrue(result.getContent().isEmpty());
 
         verify(productMapper, never()).toResponseDto(any());
+    }
+
+    @Test
+    void updateStock_IncreaseStock_ReturnsUpdatedDto() {
+        Long productId = 1L;
+        ProductStockUpdateDto requestDto = new ProductStockUpdateDto();
+        requestDto.setQuantityChange(10);
+
+        Product existingProduct = new Product();
+        existingProduct.setId(productId);
+        existingProduct.setStockQuantity(20);
+
+        Product savedProduct = new Product();
+        savedProduct.setId(productId);
+        savedProduct.setStockQuantity(30);
+
+        ProductResponseDto responseDto = new ProductResponseDto();
+        responseDto.setId(productId);
+        responseDto.setStockQuantity(30);
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(existingProduct));
+        when(productRepository.save(existingProduct)).thenReturn(savedProduct);
+        when(productMapper.toResponseDto(savedProduct)).thenReturn(responseDto);
+
+        ProductResponseDto result = productService.updateStock(productId, requestDto);
+
+        assertNotNull(result);
+        assertEquals(30, result.getStockQuantity());
+        verify(productRepository, times(1)).save(existingProduct);
+    }
+
+    @Test
+    void updateStock_ResultNegativeStock_ThrowsException() {
+        Long productId = 1L;
+        ProductStockUpdateDto requestDto = new ProductStockUpdateDto();
+        requestDto.setQuantityChange(-50);
+
+        Product existingProduct = new Product();
+        existingProduct.setId(productId);
+        existingProduct.setStockQuantity(20);
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(existingProduct));
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            productService.updateStock(productId, requestDto);
+        });
+
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void updateStock_ProductNotFound_ThrowsException() {
+        Long productId = 99L;
+        ProductStockUpdateDto requestDto = new ProductStockUpdateDto();
+        requestDto.setQuantityChange(5);
+
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            productService.updateStock(productId, requestDto);
+        });
+
+        verify(productRepository, never()).save(any());
     }
 }

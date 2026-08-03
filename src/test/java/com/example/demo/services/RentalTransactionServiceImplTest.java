@@ -68,7 +68,7 @@ class RentalTransactionServiceImplTest {
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(equipmentRepository.findById(1L)).thenReturn(Optional.of(equipment));
 
-        when(rentalRepository.findByActualReturnTimeIsNull()).thenReturn(Collections.emptyList());
+        when(rentalRepository.existsByEquipmentIdAndActualReturnTimeIsNull(1L)).thenReturn(false);
         when(rentalRepository.save(any(RentalTransaction.class))).thenReturn(savedTransaction);
         when(rentalTransactionMapper.toResponseDto(savedTransaction)).thenReturn(responseDto);
 
@@ -94,7 +94,7 @@ class RentalTransactionServiceImplTest {
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(equipmentRepository.findById(1L)).thenReturn(Optional.of(equipment));
-        when(rentalRepository.findByActualReturnTimeIsNull()).thenReturn(List.of(activeTransaction));
+        when(rentalRepository.existsByEquipmentIdAndActualReturnTimeIsNull(1L)).thenReturn(true);
 
         assertThrows(EquipmentUnavailableException.class, () -> rentalService.rentEquipment(requestDto));
         verify(rentalRepository, never()).save(any());
@@ -124,11 +124,62 @@ class RentalTransactionServiceImplTest {
     void returnEquipment_AlreadyClosed_ThrowsException() {
         RentalTransaction transaction = new RentalTransaction();
         transaction.setId(1L);
-        transaction.setActualReturnTime(LocalDateTime.now()); // Already returned
+        transaction.setActualReturnTime(LocalDateTime.now());
 
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(transaction));
 
         assertThrows(InvalidRentalActionException.class, () -> rentalService.returnEquipment(1L));
         verify(rentalRepository, never()).save(any());
+    }
+
+    @Test
+    void getAllRentals_WithoutStatus_ReturnsAll() {
+        RentalTransaction transaction = new RentalTransaction();
+        RentalTransactionResponseDto responseDto = new RentalTransactionResponseDto();
+
+        when(rentalRepository.findAll()).thenReturn(List.of(transaction));
+        when(rentalTransactionMapper.toResponseDto(transaction)).thenReturn(responseDto);
+
+        List<RentalTransactionResponseDto> results = rentalService.getAllRentals(null);
+
+        assertEquals(1, results.size());
+        verify(rentalRepository, times(1)).findAll();
+    }
+
+    @Test
+    void getAllRentals_WithActiveStatus_ReturnsActiveOnly() {
+        RentalTransaction transaction = new RentalTransaction();
+        RentalTransactionResponseDto responseDto = new RentalTransactionResponseDto();
+
+        when(rentalRepository.findByActualReturnTimeIsNull()).thenReturn(List.of(transaction));
+        when(rentalTransactionMapper.toResponseDto(transaction)).thenReturn(responseDto);
+
+        List<RentalTransactionResponseDto> results = rentalService.getAllRentals("ACTIVE");
+
+        assertEquals(1, results.size());
+        verify(rentalRepository, times(1)).findByActualReturnTimeIsNull();
+    }
+
+    @Test
+    void getRentalsByMemberId_Success_ReturnsList() {
+        RentalTransaction transaction = new RentalTransaction();
+        RentalTransactionResponseDto responseDto = new RentalTransactionResponseDto();
+
+        when(memberRepository.existsById(1L)).thenReturn(true);
+        when(rentalRepository.findByMemberId(1L)).thenReturn(List.of(transaction));
+        when(rentalTransactionMapper.toResponseDto(transaction)).thenReturn(responseDto);
+
+        List<RentalTransactionResponseDto> results = rentalService.getRentalsByMemberId(1L);
+
+        assertEquals(1, results.size());
+        verify(rentalRepository, times(1)).findByMemberId(1L);
+    }
+
+    @Test
+    void getRentalsByMemberId_MemberNotFound_ThrowsException() {
+        when(memberRepository.existsById(99L)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> rentalService.getRentalsByMemberId(99L));
+        verify(rentalRepository, never()).findByMemberId(any());
     }
 }

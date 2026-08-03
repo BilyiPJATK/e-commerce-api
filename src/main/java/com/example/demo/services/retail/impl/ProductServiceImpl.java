@@ -1,6 +1,7 @@
 package com.example.demo.services.retail.impl;
 
 import com.example.demo.dtos.retail.request.ProductRequestDto;
+import com.example.demo.dtos.retail.request.ProductStockUpdateDto;
 import com.example.demo.dtos.retail.response.ProductResponseDto;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.mappers.ProductMapper;
@@ -64,5 +65,22 @@ public class ProductServiceImpl implements ProductService {
             throw new ResourceNotFoundException("Product not found with id: " + id);
         }
         productRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponseDto updateStock(Long id, ProductStockUpdateDto requestDto) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+
+        int newStock = product.getStockQuantity() + requestDto.getQuantityChange();
+
+        if (newStock < 0) {
+            throw new IllegalArgumentException("Stock quantity cannot be negative.");
+        }
+
+        product.setStockQuantity(newStock);
+        Product updatedProduct = productRepository.save(product);
+        return productMapper.toResponseDto(updatedProduct);
     }
 }

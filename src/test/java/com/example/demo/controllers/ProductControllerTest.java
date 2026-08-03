@@ -2,6 +2,7 @@ package com.example.demo.controllers;
 
 import com.example.demo.controllers.retail.ProductController;
 import com.example.demo.dtos.retail.request.ProductRequestDto;
+import com.example.demo.dtos.retail.request.ProductStockUpdateDto;
 import com.example.demo.dtos.retail.response.ProductResponseDto;
 import com.example.demo.security.JwtService;
 import com.example.demo.services.retail.ProductService;
@@ -18,7 +19,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -74,5 +77,37 @@ public class ProductControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.price").exists());
+    }
+
+    @Test
+    void updateStock_ValidRequest_Returns200Ok() throws Exception {
+        Long productId = 1L;
+        ProductStockUpdateDto request = new ProductStockUpdateDto();
+        request.setQuantityChange(15);
+
+        ProductResponseDto response = new ProductResponseDto();
+        response.setId(productId);
+        response.setStockQuantity(65);
+
+        when(productService.updateStock(eq(productId), any(ProductStockUpdateDto.class))).thenReturn(response);
+
+        mockMvc.perform(patch("/api/products/{id}/stock", productId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.stockQuantity").value(65));
+    }
+
+    @Test
+    void updateStock_MissingQuantityChange_Returns400BadRequest() throws Exception {
+        Long productId = 1L;
+        ProductStockUpdateDto request = new ProductStockUpdateDto();
+        request.setQuantityChange(null);
+
+        mockMvc.perform(patch("/api/products/{id}/stock", productId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }
