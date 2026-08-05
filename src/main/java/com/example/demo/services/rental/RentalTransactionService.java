@@ -6,6 +6,7 @@ import com.example.demo.dtos.rental.response.RentalTransactionResponseDto;
 import java.util.List;
 
 public interface RentalTransactionService {
+//    It is allowed to rent all types of equipment (like chalk) since it can be rented by an employee for purposes of conducting a lesson
     RentalTransactionResponseDto rentEquipment(RentalTransactionRequestDto requestDto);
     RentalTransactionResponseDto returnEquipment(Long transactionId);
 

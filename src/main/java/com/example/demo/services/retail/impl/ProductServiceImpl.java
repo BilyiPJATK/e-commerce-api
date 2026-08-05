@@ -73,7 +73,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
-        int newStock = product.getStockQuantity() + requestDto.getQuantityChange();
+        int newStock = requestDto.getQuantity();
 
         if (newStock < 0) {
             throw new IllegalArgumentException("Stock quantity cannot be negative.");
